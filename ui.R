@@ -4,7 +4,7 @@ library(plyr)
 library(ggplot2)
 library(plotly)
 library(AmericanCallOpt)
-Rcpp::sourceCpp('~/Desktop/gabr/SABR/sabr_rcpp.cpp')
+Rcpp::sourceCpp('~/Desktop/optionShiny/sabr_rcpp.cpp')
 
 
 shinyUI( navbarPage("Options for All",
@@ -26,12 +26,12 @@ shinyUI( navbarPage("Options for All",
              h1("American"),
              sidebarPanel(
                selectInput("select", label = h4("Type"), choices = list("Long Call" = "lc", "Short Call" = "sc","Long Put" = "lp", "Short Put" = "sp")),
-               textInput("S",label = h4("Foward Price" ), value= 101),
-               textInput("K",label = h4("Strike Price"), value= 100), 
-               textInput("T",label = h4("Days to Expiration"),value= "365" ),
-               textInput("r",label = h4("Interest Rate"), value= .02),
-               textInput("sigma",label = h4("Volatility"), value= .2),
-               textInput("b",label = h4("Cost to Carry"), value = .01)
+               textInput("Sike",label = h4("Foward Price" ), value= 101),
+               textInput("Kike",label = h4("Strike Price"), value= 100), 
+               textInput("Time",label = h4("Days to Expiration"),value= "365" ),
+               textInput("rike",label = h4("Interest Rate"), value= .02),
+               textInput("sigike",label = h4("Volatility"), value= .2),
+               textInput("bike",label = h4("Cost to Carry"), value = .01)
                ), 
              mainPanel(verbatimTextOutput("amer_price"), plotlyOutput("amer_plot")
              )

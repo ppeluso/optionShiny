@@ -230,9 +230,9 @@ output$amer_price <- renderText({
   plot <- c()
   if(input$select == "lc")
   {
-    time <- as.numeric(input$T) / 252
+    time <- as.numeric(input$Time) / 252
     
-    value<-BSAmericanApproxOption("c", as.numeric(input$S),as.numeric(input$K),time , as.numeric(input$r), as.numeric(input$b), as.numeric(input$sigma),
+    value<-BSAmericanApproxOption("c", as.numeric(input$Sike),as.numeric(input$Kike),time , as.numeric(input$rike), as.numeric(input$bike), as.numeric(input$sigike),
                                           title = NULL, description = NULL)
 #     for(i in 1: length(so))
 #     {
@@ -254,8 +254,8 @@ output$amer_price <- renderText({
   }
   else if(input$select == "lp")
   { 
-    time <- as.numeric(input$K) /252
-    value<-BSAmericanApproxOption("p", as.numeric(input$S),as.numeric(input$K),time , as.numeric(input$r), as.numeric(input$b), as.numeric(input$sigma),
+    time <- as.numeric(input$Time) /252
+    value<-BSAmericanApproxOption("p", as.numeric(input$Sike),as.numeric(input$Kike),time , as.numeric(input$rike), as.numeric(input$bike), as.numeric(input$sigike),
                                   title = NULL, description = NULL)
     
     price <- round_any(value@price, accuracy = .001, f = round)
@@ -265,9 +265,9 @@ output$amer_price <- renderText({
   }
   else if(input$select == "sc")
   {
-    time <- as.numeric(input$T) /252
+    time <- as.numeric(input$Time) /252
 
-    value<-BSAmericanApproxOption("c", as.numeric(input$S),as.numeric(input$K),time , as.numeric(input$r), as.numeric(input$b), as.numeric(input$sigma),
+    value<-BSAmericanApproxOption("c", as.numeric(input$Sike),as.numeric(input$Kike),time , as.numeric(input$rike), as.numeric(input$bike), as.numeric(input$sigike),
                                   title = NULL, description = NULL)
    
     price <- round_any(value@price, accuracy = .001, f = round)
@@ -276,8 +276,8 @@ output$amer_price <- renderText({
   }
   else if (input$select == "sp")
   { 
-    time <- as.numeric(input$K) /252
-    value<-BSAmericanApproxOption("p", as.numeric(input$S),as.numeric(input$K),time , as.numeric(input$r), as.numeric(input$b), as.numeric(input$sigma),
+    time <- as.numeric(input$Time) /252
+    value<-BSAmericanApproxOption("c", as.numeric(input$Sike),as.numeric(input$Kike),time , as.numeric(input$rike), as.numeric(input$bike), as.numeric(input$sigike),
                                   title = NULL, description = NULL)
     
     price <- round_any(value@price, accuracy = .001, f = round)
@@ -308,16 +308,20 @@ output$amer_plot <- renderPlotly({
 
   current <- c()
   
-  if(input$sel == "LC")
+  if(input$sel == "lc")
   {
-    value <- BSAmericanApproxOption("c", as.numeric(input$S),as.numeric(input$K),time , as.numeric(input$r), as.numeric(input$b), as.numeric(input$sigma),
-                                    title = NULL, description = NULL)
+    so <- seq(trunc(as.numeric(input$S)) - 40, trunc(as.numeric(input$S)) + 20, 1 )
+    time <- as.numeric(input$Time)/252
+    value<-BSAmericanApproxOption("c", as.numeric(input$Sike),as.numeric(input$Kike),time , as.numeric(input$rike), as.numeric(input$bike), as.numeric(input$sigike),
+                                  title = NULL, description = NULL)
     value <- value@price
     for(i in 1: length(so))
     {
-     currentVal <-  BSAmericanApproxOption("c", as.numeric(input$S),as.numeric(input$K),time , as.numeric(input$r), as.numeric(input$b), as.numeric(input$sigma),
-                             title = NULL, description = NULL)
-     currentVal <- currentVal@price
+      time <- as.numeric(input$Time)/252
+     currentVal <-BSAmericanApproxOption("c", so[i],as.numeric(input$Kike),time , as.numeric(input$rike), as.numeric(input$bike), as.numeric(input$sigike),
+                                                 title = NULL, description = NULL) 
+     currentVal <- currentVal@price * 100
+    
       if(so[i] <= as.numeric(input$K) )
       {
         plot[i] <- -value * 100
@@ -345,7 +349,7 @@ output$amer_plot <- renderPlotly({
     layout(p = last_plot(), xaxis = list(title = "Underlying Price"), yaxis= list(title = "Payoff"))
   }
   
-  else if(input$sel == "LP")
+  else if(input$sel == "lp")
   {
     value <- putPriceMonteCarlo(1000000,as.numeric(input$S),as.numeric(input$K), as.numeric(input$T), as.numeric(input$r), as.numeric(input$sigma))
     
@@ -384,39 +388,45 @@ output$amer_plot <- renderPlotly({
   
   
   
-  else if(input$sel == "SC")
+  else if(input$sel == "sc")
   {
-    value <- callPriceMonteCarlo(1000000,as.numeric(input$S),as.numeric(input$K), as.numeric(input$T),as.numeric(input$r), as.numeric(input$sigma))
-    
+    so <- seq(trunc(as.numeric(input$S)) - 40, trunc(as.numeric(input$S)) + 20, 1 )
+    time <- as.numeric(input$Time)/252
+    value<-BSAmericanApproxOption("c", as.numeric(input$Sike),as.numeric(input$Kike),time , as.numeric(input$rike), as.numeric(input$bike), as.numeric(input$sigike),
+                                  title = NULL, description = NULL)
+    value <- value@price
     for(i in 1: length(so))
     {
-      currentVal <- callPriceMonteCarlo(1000000,as.numeric(so[i]),as.numeric(input$K), as.numeric(input$T), as.numeric(input$r), as.numeric(input$sigma)) * 100
-      if(so[i] <= as.numeric(input$K) )
+      currentVal <-BSAmericanApproxOption("c", so[i],as.numeric(input$Kike),time , as.numeric(input$rike), as.numeric(input$bike), as.numeric(input$sigike),
+                                          title = NULL, description = NULL) 
+      currentVal <- currentVal@price * 100
+      if(so[i] <= as.numeric(input$K)  )
       {
-        plot[i] <- value * 100
-        current[i] <- (value * 100) - currentVal 
+        plot[i] <- -value * 100
+        current[i] <- currentVal - (value * 100)
+        
+        
       }
       else
       {
-        plot[i] <- ((as.numeric(input$K) - so[i] ) + value) * 100
-        current[i] <-  (value * 100) -currentVal 
+        plot[i] <- ((so[i] - as.numeric(input$K))*100) - value *100  
+        current[i] <- currentVal - (value * 100)
+        
       }
     }
     
     dat <- data.frame(so, plot, current)
-    #ggplot() + geom_line(data = dat, aes(x = so, y = plot),colour = "red") + geom_line(data = dat, aes(x = so, y = current), colour = "blue") + geom_hline(yintercept = 0, size = 1, colour = "black") + xlab("Underlying Price") + ylab("Payoff") + ggtitle("Payoff of Short Call")
-    
+    # ggplot() + geom_line(data = dat, aes(x = so, y = plot),colour = "red") + geom_hline(yintercept = 0, size = 1, colour = "black") + geom_line(data = dat, aes(x = so, y = current), colour="blue")  + xlab("Underlying Price") + ylab("Payoff") + ggtitle("Payoff of Long Call")
     p <- plot_ly(dat, x = so, y = plot, name = "Payoff at Expiration",marker = list(
       color = 'rgb(0,0,255)'
-    ))
-    p %>% add_trace(x= so,y = current, name = "Payoff at Current Date",marker = list(
+    ) )
+    p %>% add_trace(x= so,y = current, name = "Payoff at Current Date", marker = list(
       color = 'rgb(233,16,16)'
     ))
     #ggplotly(hoverinfo="poop")
     layout(p = last_plot(), xaxis = list(title = "Underlying Price"), yaxis= list(title = "Payoff"))
-    
   }
-  else if (input$sel == "SP")
+  else if (input$sel == "sp")
   { 
     
     value <- putPriceMonteCarlo(1000000,as.numeric(input$S),as.numeric(input$K), as.numeric(input$T), as.numeric(input$r), as.numeric(input$sigma))
