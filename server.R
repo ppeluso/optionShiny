@@ -190,17 +190,17 @@ output$plotly <- renderPlotly({
     for(i in 1: length(so))
     {
       currentVal <- putPriceMonteCarlo(1000000,as.numeric(so[i]),as.numeric(input$K), as.numeric(input$T), as.numeric(input$r), as.numeric(input$sigma)) * 100
-      if(so[i] <= as.numeric(input$K)  )
+      if(so[i] >= as.numeric(input$K))
       {
         plot[i] <- value * 100
-        current[i] <- currentVal - (value * 100)
+        current[i] <- (value * 100) - currentVal
         
         
       }
       else
       {
-        plot[i] <- ((  as.numeric(input$K) -so[i])*100) 
-        current[i] <- currentVal - (value * 100)
+        plot[i] <- -(( as.numeric(input$K) - so[i])*100) + value *100  
+        current[i] <- (value * 100) - currentVal 
         
       }
     }
@@ -277,7 +277,7 @@ output$amer_price <- renderText({
   else if (input$select == "sp")
   { 
     time <- as.numeric(input$Time) /252
-    value<-BSAmericanApproxOption("c", as.numeric(input$Sike),as.numeric(input$Kike),time , as.numeric(input$rike), as.numeric(input$bike), as.numeric(input$sigike),
+    value<-BSAmericanApproxOption("p", as.numeric(input$Sike),as.numeric(input$Kike),time , as.numeric(input$rike), as.numeric(input$bike), as.numeric(input$sigike),
                                   title = NULL, description = NULL)
     
     price <- round_any(value@price, accuracy = .001, f = round)
@@ -304,83 +304,95 @@ output$carry <- renderText({
 output$amer_plot <- renderPlotly({
   
   so <- seq(trunc(as.numeric(input$S)) - 40, trunc(as.numeric(input$S)) + 20, 1 )
-  plot <- c()
-
-  current <- c()
   
-  if(input$sel == "lc")
+  
+  if(input$select == "lc")
   {
-    so <- seq(trunc(as.numeric(input$S)) - 40, trunc(as.numeric(input$S)) + 20, 1 )
+    plot <- c()
+    current <- c()
+    so <- seq(trunc(as.numeric(input$Sike)) - 40, trunc(as.numeric(input$Sike)) + 20, 1 )
     time <- as.numeric(input$Time)/252
     value<-BSAmericanApproxOption("c", as.numeric(input$Sike),as.numeric(input$Kike),time , as.numeric(input$rike), as.numeric(input$bike), as.numeric(input$sigike),
                                   title = NULL, description = NULL)
-    value <- value@price
+    value <- as.numeric(value@price)
     for(i in 1: length(so))
     {
       time <- as.numeric(input$Time)/252
      currentVal <-BSAmericanApproxOption("c", so[i],as.numeric(input$Kike),time , as.numeric(input$rike), as.numeric(input$bike), as.numeric(input$sigike),
                                                  title = NULL, description = NULL) 
-     currentVal <- currentVal@price * 100
+     currentVal <- as.numeric(currentVal@price) * 100
     
-      if(so[i] <= as.numeric(input$K) )
+      if(so[i] <= as.numeric(input$Kike) )
       {
-        plot[i] <- -value * 100
-        current[i] <- currentVal - (value * 100)
+        plot[i] <- as.numeric(-value * 100)
+        current[i] <- as.numeric(currentVal - (value * 100))
         
         
       }
       else
       {
-        plot[i] <- ((so[i] - as.numeric(input$K))*100) - value *100  
-        current[i] <- currentVal - (value * 100)
+        plot[i] <-as.numeric( ((so[i] - as.numeric(input$Kike))*100) - value *100  )
+        current[i] <-as.numeric( currentVal - (value * 100))
         
       }
     }
     
-    dat <- data.frame(so, plot, current)
+    bat <- data.frame(so, plot, current)
     # ggplot() + geom_line(data = dat, aes(x = so, y = plot),colour = "red") + geom_hline(yintercept = 0, size = 1, colour = "black") + geom_line(data = dat, aes(x = so, y = current), colour="blue")  + xlab("Underlying Price") + ylab("Payoff") + ggtitle("Payoff of Long Call")
-    p <- plot_ly(dat, x = so, y = plot, name = "Payoff at Expiration",marker = list(
+    x <- plot_ly(bat, x = so, y = plot, name = "Payoff at Expiration",marker = list(
       color = 'rgb(0,0,255)'
     ) )
-    p %>% add_trace(x= so,y = current, name = "Payoff at Current Date", marker = list(
+    x %>% add_trace(x= so,y = current, name = "Payoff at Current Date", marker = list(
       color = 'rgb(233,16,16)'
     ))
     #ggplotly(hoverinfo="poop")
-    layout(p = last_plot(), xaxis = list(title = "Underlying Price"), yaxis= list(title = "Payoff"))
+    layout(x = last_plot(), xaxis = list(title = "Underlying Price"), yaxis= list(title = "Payoff"))
+  
   }
   
-  else if(input$sel == "lp")
+  else if(input$select == "lp")
   {
-    value <- putPriceMonteCarlo(1000000,as.numeric(input$S),as.numeric(input$K), as.numeric(input$T), as.numeric(input$r), as.numeric(input$sigma))
-    
+    plot <- c()
+    current <- c()
+    so <- seq(trunc(as.numeric(input$Sike)) - 40, trunc(as.numeric(input$Sike)) + 20, 1 )
+    time <- as.numeric(input$Time)/252
+    value<-BSAmericanApproxOption("p", as.numeric(input$Sike),as.numeric(input$Kike),time , as.numeric(input$rike), as.numeric(input$bike), as.numeric(input$sigike),
+                                  title = NULL, description = NULL)
+    value <- as.numeric(value@price)
     for(i in 1: length(so))
     {
-      currentVal <- putPriceMonteCarlo(1000000,as.numeric(so[i]),as.numeric(input$K), as.numeric(input$T), as.numeric(input$r), as.numeric(input$sigma)) * 100
-      if(so[i] >= as.numeric(input$K)  )
-      {
-        plot[i] <- -value * 100
-        current[i] <- currentVal - (value * 100)
-        
-        
-      }
+      time <- as.numeric(input$Time)/252
+      currentVal <-BSAmericanApproxOption("p", so[i],as.numeric(input$Kike),time , as.numeric(input$rike), as.numeric(input$bike), as.numeric(input$sigike),
+                                          title = NULL, description = NULL) 
+      currentVal <- as.numeric(currentVal@price) * 100
+      
+   
+        if(so[i] >= as.numeric(input$Kike)  )
+        {
+          plot[i] <- -value * 100
+          current[i] <- currentVal - (value * 100)
+          
+          
+        }
       else
       {
-        plot[i] <- (( as.numeric(input$K) - so[i])*100) - value *100  
+        plot[i] <- (( as.numeric(input$Kike) - so[i])*100) - value *100  
         current[i] <- currentVal - (value * 100)
         
       }
     }
     
-    dat <- data.frame(so, plot, current)
+    bat <- data.frame(so, plot, current)
     # ggplot() + geom_line(data = dat, aes(x = so, y = plot),colour = "red") + geom_hline(yintercept = 0, size = 1, colour = "black") + geom_line(data = dat, aes(x = so, y = current), colour="blue")  + xlab("Underlying Price") + ylab("Payoff") + ggtitle("Payoff of Long Call")
-    p <- plot_ly(dat, x = so, y = plot, name = "Payoff at Expiration",marker = list(
+    x <- plot_ly(bat, x = so, y = plot, name = "Payoff at Expiration",marker = list(
       color = 'rgb(0,0,255)'
     ) )
-    p %>% add_trace(x= so,y = current, name = "Payoff at Current Date", marker = list(
+    x %>% add_trace(x= so,y = current, name = "Payoff at Current Date", marker = list(
       color = 'rgb(233,16,16)'
     ))
     #ggplotly(hoverinfo="poop")
-    layout(p = last_plot(), xaxis = list(title = "Underlying Price"), yaxis= list(title = "Payoff"))
+    layout(x = last_plot(), xaxis = list(title = "Underlying Price"), yaxis= list(title = "Payoff"))
+    
   }
   
   
@@ -388,77 +400,91 @@ output$amer_plot <- renderPlotly({
   
   
   
-  else if(input$sel == "sc")
+  else if(input$select == "sc")
   {
-    so <- seq(trunc(as.numeric(input$S)) - 40, trunc(as.numeric(input$S)) + 20, 1 )
+    plot <- c()
+    current <- c()
+    so <- seq(trunc(as.numeric(input$Sike)) - 40, trunc(as.numeric(input$Sike)) + 20, 1 )
     time <- as.numeric(input$Time)/252
     value<-BSAmericanApproxOption("c", as.numeric(input$Sike),as.numeric(input$Kike),time , as.numeric(input$rike), as.numeric(input$bike), as.numeric(input$sigike),
                                   title = NULL, description = NULL)
-    value <- value@price
+    value <- as.numeric(value@price)
     for(i in 1: length(so))
     {
+      time <- as.numeric(input$Time)/252
       currentVal <-BSAmericanApproxOption("c", so[i],as.numeric(input$Kike),time , as.numeric(input$rike), as.numeric(input$bike), as.numeric(input$sigike),
                                           title = NULL, description = NULL) 
-      currentVal <- currentVal@price * 100
-      if(so[i] <= as.numeric(input$K)  )
+      currentVal <- as.numeric(currentVal@price) * 100
+      
+      if(so[i] <= as.numeric(input$Kike) )
       {
-        plot[i] <- -value * 100
-        current[i] <- currentVal - (value * 100)
+        plot[i] <- as.numeric(value * 100)
+        current[i] <- (value * 100) - currentVal 
         
         
       }
       else
       {
-        plot[i] <- ((so[i] - as.numeric(input$K))*100) - value *100  
-        current[i] <- currentVal - (value * 100)
+        plot[i] <-as.numeric( ((as.numeric(input$Kike)-so[i] )*100) + value *100  )
+        current[i] <-(value * 100) - currentVal 
         
       }
     }
     
-    dat <- data.frame(so, plot, current)
+    bat <- data.frame(so, plot, current)
     # ggplot() + geom_line(data = dat, aes(x = so, y = plot),colour = "red") + geom_hline(yintercept = 0, size = 1, colour = "black") + geom_line(data = dat, aes(x = so, y = current), colour="blue")  + xlab("Underlying Price") + ylab("Payoff") + ggtitle("Payoff of Long Call")
-    p <- plot_ly(dat, x = so, y = plot, name = "Payoff at Expiration",marker = list(
+    x <- plot_ly(bat, x = so, y = plot, name = "Payoff at Expiration",marker = list(
       color = 'rgb(0,0,255)'
     ) )
-    p %>% add_trace(x= so,y = current, name = "Payoff at Current Date", marker = list(
+    x %>% add_trace(x= so,y = current, name = "Payoff at Current Date", marker = list(
       color = 'rgb(233,16,16)'
     ))
     #ggplotly(hoverinfo="poop")
-    layout(p = last_plot(), xaxis = list(title = "Underlying Price"), yaxis= list(title = "Payoff"))
+    layout(x = last_plot(), xaxis = list(title = "Underlying Price"), yaxis= list(title = "Payoff"))
+    
   }
-  else if (input$sel == "sp")
-  { 
-    
-    value <- putPriceMonteCarlo(1000000,as.numeric(input$S),as.numeric(input$K), as.numeric(input$T), as.numeric(input$r), as.numeric(input$sigma))
-    
+  else if (input$select == "sp")
+  {
+    plot <- c()
+    current <- c()
+    so <- seq(trunc(as.numeric(input$Sike)) - 40, trunc(as.numeric(input$Sike)) + 20, 1 )
+    time <- as.numeric(input$Time)/252
+    value<-BSAmericanApproxOption("p", as.numeric(input$Sike),as.numeric(input$Kike),time , as.numeric(input$rike), as.numeric(input$bike), as.numeric(input$sigike),
+                                  title = NULL, description = NULL)
+    value <- as.numeric(value@price)
     for(i in 1: length(so))
     {
-      currentVal <- putPriceMonteCarlo(1000000,as.numeric(so[i]),as.numeric(input$K), as.numeric(input$T), as.numeric(input$r), as.numeric(input$sigma)) * 100
-      if(so[i] <= as.numeric(input$K)  )
+      time <- as.numeric(input$Time)/252
+      currentVal <-BSAmericanApproxOption("p", so[i],as.numeric(input$Kike),time , as.numeric(input$rike), as.numeric(input$bike), as.numeric(input$sigike),
+                                          title = NULL, description = NULL) 
+      currentVal <- as.numeric(currentVal@price) * 100
+      
+      
+      if(so[i] >= as.numeric(input$Kike)  )
       {
         plot[i] <- value * 100
-        current[i] <- currentVal - (value * 100)
+        current[i] <- (value * 100) - currentVal
         
         
       }
       else
       {
-        plot[i] <- ((  as.numeric(input$K) -so[i])*100) 
-        current[i] <- currentVal - (value * 100)
+        plot[i] <- -(( as.numeric(input$Kike) - so[i])*100) + value *100  
+        current[i] <- (value * 100) - currentVal 
         
       }
     }
     
-    dat <- data.frame(so, plot, current)
+    bat <- data.frame(so, plot, current)
     # ggplot() + geom_line(data = dat, aes(x = so, y = plot),colour = "red") + geom_hline(yintercept = 0, size = 1, colour = "black") + geom_line(data = dat, aes(x = so, y = current), colour="blue")  + xlab("Underlying Price") + ylab("Payoff") + ggtitle("Payoff of Long Call")
-    p <- plot_ly(dat, x = so, y = plot, name = "Payoff at Expiration",marker = list(
+    x <- plot_ly(bat, x = so, y = plot, name = "Payoff at Expiration",marker = list(
       color = 'rgb(0,0,255)'
     ) )
-    p %>% add_trace(x= so,y = current, name = "Payoff at Current Date", marker = list(
+    x %>% add_trace(x= so,y = current, name = "Payoff at Current Date", marker = list(
       color = 'rgb(233,16,16)'
     ))
     #ggplotly(hoverinfo="poop")
-    layout(p = last_plot(), xaxis = list(title = "Underlying Price"), yaxis= list(title = "Payoff"))
+    layout(x = last_plot(), xaxis = list(title = "Underlying Price"), yaxis= list(title = "Payoff"))
     
   }
   else 
